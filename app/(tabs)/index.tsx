@@ -1,12 +1,14 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import {
+  FlatList,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import { supabase } from "../../lib/supabase";
 
 type Task = {
   id: string;
@@ -17,17 +19,54 @@ type Task = {
 export default function App() {
   const [task, setTask] = useState("");
   const [tasks, setTasks] = useState<Task[]>([]);
-  function handleAddTask() {
-    if (task.trim() === "") return;
-    setTasks([
-      ...tasks,
-      { id: Date.now().toString(), text: task, completed: false },
-    ]);
-    setTask("");
-  }
+
   useEffect(() => {
-    console.log("Component Mounted!");
+    loadTasks();
   }, []);
+
+  async function loadTasks() {
+    const { data, error } = await supabase.from("tasks").select("*");
+    if (error) {
+      console.error("Error fetching tasks:", error.message);
+      return;
+    }
+    setTasks((data ?? []) as Task[]);
+  }
+
+  async function addTask() {
+    if (task.trim() === "") return;
+    const { error } = await supabase
+      .from("tasks")
+      .insert([{ title: task, completed: false }]);
+    if (error) {
+      console.error("Error adding task:", error.message);
+      return;
+    }
+    setTask("");
+    loadTasks();
+  }
+
+  async function toggleTask(item: Task) {
+    const { error } = await supabase
+      .from("tasks")
+      .update({ completed: !item.completed })
+      .eq("id", item.id);
+    if (error) {
+      console.error("Error updating task:", error.message);
+      return;
+    }
+    loadTasks();
+  }
+
+  async function deleteTask(item: Task) {
+    const { error } = await supabase.from("tasks").delete().eq("id", item.id);
+    if (error) {
+      console.error("Error deleting task:", error.message);
+      return;
+    }
+    loadTasks();
+  }
+
   return (
     <View style={styles.container}>
       <View style={headerStyles.header}>
@@ -41,41 +80,34 @@ export default function App() {
           value={task}
           onChangeText={setTask}
         />
-        <TouchableOpacity style={styles.addButton} onPress={handleAddTask}>
+        <TouchableOpacity style={styles.addButton} onPress={addTask}>
           <MaterialIcons name="add" size={22} color="#fff" />
         </TouchableOpacity>
       </View>
 
-      <View style={styles.taskRow}>
-        <MaterialIcons
-          name="check-box-outline-blank"
-          size={20}
-          color="#5A6472"
-        />
-        <Text style={styles.taskText}>Study React Native </Text>
-      </View>
-      <View style={styles.taskRow}>
-        <MaterialIcons
-          name="check-box-outline-blank"
-          size={20}
-          color="#5A6472"
-        />
-        <Text style={styles.taskText}>Finish Assignment</Text>
-      </View>
-
-      {tasks.map((item) => (
-        <View key={item.id} style={styles.taskRow}>
-          <MaterialIcons
-            name={item.completed ? "check-box" : "check-box-outline-blank"}
-            size={20}
-            color={item.completed ? "#2E5BBA" : "#5A6472"}
-          />
-          <Text style={styles.taskText}>{item.text}</Text>
-        </View>
-      ))}
+      <FlatList<Task>
+        data={tasks}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            onPress={() => toggleTask(item)}
+            onLongPress={() => deleteTask(item)}
+          >
+            <View style={styles.taskRow}>
+              <MaterialIcons
+                name={item.completed ? "check-box" : "check-box-outline-blank"}
+                size={20}
+                color={item.completed ? "#2E5BBA" : "#5A6472"}
+              />
+              <Text style={styles.taskText}>{item.text}</Text>
+            </View>
+          </TouchableOpacity>
+        )}
+      />
     </View>
   );
 }
+
 const headerStyles = StyleSheet.create({
   header: {
     paddingTop: 50,

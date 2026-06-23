@@ -1,6 +1,9 @@
+import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { FlatList, StyleSheet, Text, View } from "react-native";
+import Toast from "react-native-toast-message";
 import { supabase } from "../../lib/supabase";
+import AddTaskModal from "./AddTaskModal";
 import TaskItem from "./TaskItem";
 
 type Task = {
@@ -9,14 +12,43 @@ type Task = {
   completed: boolean;
 };
 
-export default function App() {
+export default function HomeScreen() {
   const [task, setTask] = useState("");
   const [tasks, setTasks] = useState<Task[]>([]);
+  const router = useRouter();
+  const [ModalVisible, setModalVisible] = useState(false);
+  function handleOpenModal() {
+    setModalVisible(true);
+  }
+  function handleOpenAddTask() {
+    router.push("/(tabs)/TaskForm");
+  }
 
   useEffect(() => {
     loadTasks();
   }, []);
 
+  async function handleSubmitTask(title: string) {
+    const { error } = await supabase
+      .from("tasks")
+      .insert([{ title, completed: false }]);
+    if (error) {
+      console.error("Error submitting task:", error.message);
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Failed to submit task",
+      });
+      return;
+    }
+    setModalVisible(false);
+    loadTasks();
+    Toast.show({
+      type: "success",
+      text1: "Success",
+      text2: "Task added successfully",
+    });
+  }
   async function loadTasks() {
     const { data, error } = await supabase.from("tasks").select("*");
     if (error) {
@@ -54,12 +86,25 @@ export default function App() {
   async function deleteTask(item: Task) {
     const { error } = await supabase.from("tasks").delete().eq("id", item.id);
     if (error) {
-      console.error("Error deleting task:", error.message);
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Failed to delete task",
+      });
       return;
     }
     loadTasks();
+    Toast.show({
+      type: "success",
+      text1: "Success",
+      text2: "Task deleted successfully",
+    });
   }
-
+  <AddTaskModal
+    visible={ModalVisible}
+    onClose={() => setModalVisible(false)}
+    onSubmit={handleSubmitTask}
+  />;
   return (
     <View style={styles.container}>
       <View style={headerStyles.header}>

@@ -1,5 +1,5 @@
 import { MaterialIcons } from "@expo/vector-icons";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 type TaskFormProps = {
   item: any;
@@ -11,10 +11,11 @@ export default function TaskItem({ item, onToggle, onDelete }: TaskFormProps) {
   return (
     <View style={styles.TaskRow}>
       <MaterialIcons
-        name={item.completed ? "check-box" : "check-box-outline-blank"}
+        name={item?.completed ? "check-box" : "check-box-outline-blank"}
         size={20}
-        color={item.completed ? "#2E5BBA" : "#5A6472"}
+        color={item?.completed ? "#2E5BBA" : "#5A6472"}
       />
+      <Text>{item.title}</Text>
       <TouchableOpacity
         onPress={() => onToggle(item)}
         onLongPress={() => onDelete(item)}

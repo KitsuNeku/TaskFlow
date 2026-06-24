@@ -8,7 +8,7 @@ import TaskItem from "./TaskItem";
 
 type Task = {
   id: string;
-  text: string;
+  title: string;
   completed: boolean;
 };
 
@@ -100,25 +100,28 @@ export default function HomeScreen() {
       text2: "Task deleted successfully",
     });
   }
-  <AddTaskModal
-    visible={ModalVisible}
-    onClose={() => setModalVisible(false)}
-    onSubmit={handleSubmitTask}
-  />;
-  return (
-    <View style={styles.container}>
-      <View style={headerStyles.header}>
-        <Text style={headerStyles.title}>Taskflow</Text>
-      </View>
 
-      <FlatList<Task>
-        data={tasks}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TaskItem item={item} onToggle={toggleTask} onDelete={deleteTask} />
-        )}
+  return (
+    <>
+      <View style={styles.container}>
+        <View style={headerStyles.header}>
+          <Text style={headerStyles.title}>Taskflow</Text>
+        </View>
+
+        <FlatList<Task>
+          data={tasks}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <TaskItem item={item} onToggle={toggleTask} onDelete={deleteTask} />
+          )}
+        />
+      </View>
+      <AddTaskModal
+        visible={ModalVisible}
+        onClose={() => setModalVisible(false)}
+        onSubmit={handleSubmitTask}
       />
-    </View>
+    </>
   );
 }
 

@@ -3,8 +3,7 @@ import { useEffect, useState } from "react";
 import { FlatList, StyleSheet, Text, View } from "react-native";
 import Toast from "react-native-toast-message";
 import { supabase } from "../../lib/supabase";
-import AddTaskModal from "./AddTaskModal";
-import TaskItem from "./TaskItem";
+import TaskItem from "../../components/TaskItem";
 
 type Task = {
   id: string;
@@ -116,11 +115,6 @@ export default function HomeScreen() {
           )}
         />
       </View>
-      <AddTaskModal
-        visible={ModalVisible}
-        onClose={() => setModalVisible(false)}
-        onSubmit={handleSubmitTask}
-      />
     </>
   );
 }

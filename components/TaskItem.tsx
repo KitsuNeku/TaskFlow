@@ -8,6 +8,7 @@ type TaskFormProps = {
 };
 
 export default function TaskItem({ item, onToggle, onDelete }: TaskFormProps) {
+  if (!item) return null;
   return (
     <View style={styles.TaskRow}>
       <MaterialIcons

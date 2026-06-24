@@ -19,7 +19,20 @@ export default function AddTaskModal({ visible, onClose, onSubmit }: Props) {
   const [task, setText] = useState<string>("");
   function handleSubmit() {
     if (task.trim() === "") return;
-    onSubmit(task);
+
+    console.log("onSubmit =", onSubmit);
+
+    if (typeof onSubmit !== "function") {
+      return;
+    }
+
+    console.log("onSubmit:", onSubmit);
+
+    if (typeof onSubmit === "function") {
+      onSubmit(task);
+    } else {
+      console.log("onSubmit is undefined");
+    }
     setText("");
   }
   return (

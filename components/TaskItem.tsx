@@ -20,7 +20,9 @@ export default function TaskItem({ item, onToggle, onDelete }: TaskFormProps) {
       <TouchableOpacity
         onPress={() => onToggle(item)}
         onLongPress={() => onDelete(item)}
-      ></TouchableOpacity>
+      >
+        <MaterialIcons name="delete" size={22} color="red" />
+      </TouchableOpacity>
     </View>
   );
 }

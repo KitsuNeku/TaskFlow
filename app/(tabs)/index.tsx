@@ -2,13 +2,21 @@ import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { FlatList, StyleSheet, Text, View } from "react-native";
 import Toast from "react-native-toast-message";
+import AddTaskModal from "../../components/ui/AddTaskModal";
 import { supabase } from "../../lib/supabase";
+import TaskForm from "../../components/TaskForm";
 import TaskItem from "../../components/TaskItem";
 
 type Task = {
   id: string;
   title: string;
   completed: boolean;
+};
+
+type TaskItemProps = {
+  item: Task;
+  onToggle: (item: Task) => void;
+  onDelete: (item: Task) => void;
 };
 
 export default function HomeScreen() {
@@ -18,9 +26,6 @@ export default function HomeScreen() {
   const [ModalVisible, setModalVisible] = useState(false);
   function handleOpenModal() {
     setModalVisible(true);
-  }
-  function handleOpenAddTask() {
-    router.push("/(tabs)/TaskForm");
   }
 
   useEffect(() => {
@@ -49,12 +54,19 @@ export default function HomeScreen() {
     });
   }
   async function loadTasks() {
+    console.log("Trying to connect to Supabase...");
+
     const { data, error } = await supabase.from("tasks").select("*");
+
+    console.log("data =", data);
+    console.log("error =", error);
+
     if (error) {
-      console.error("Error fetching tasks:", error.message);
+      console.error(error);
       return;
     }
-    setTasks((data ?? []) as Task[]);
+
+    setTasks(data ?? []);
   }
 
   async function addTask() {
@@ -99,23 +111,30 @@ export default function HomeScreen() {
       text2: "Task deleted successfully",
     });
   }
-
+  console.log("Rendering HomeScreen");
+  console.log("handleSubmitTask =", handleSubmitTask);
+  console.log("Passing:", handleSubmitTask);
   return (
-    <>
-      <View style={styles.container}>
-        <View style={headerStyles.header}>
-          <Text style={headerStyles.title}>Taskflow</Text>
-        </View>
-
-        <FlatList<Task>
-          data={tasks}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <TaskItem item={item} onToggle={toggleTask} onDelete={deleteTask} />
-          )}
-        />
+    <View style={styles.container}>
+      <View style={headerStyles.header}>
+        <Text style={headerStyles.title}>Taskflow</Text>
       </View>
-    </>
+
+      <AddTaskModal
+        visible={ModalVisible}
+        onClose={() => setModalVisible(false)}
+        onSubmit={handleSubmitTask}
+      />
+
+      <TaskForm task={task} setTask={setTask} onAdd={addTask} />
+      <FlatList<Task>
+        data={tasks}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <TaskItem item={item} onToggle={toggleTask} onDelete={deleteTask} />
+        )}
+      />
+    </View>
   );
 }
 
